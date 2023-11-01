@@ -1,6 +1,6 @@
 #include <PubSubClient.h>
 
-PubSubClient mqtt_client(wifi_client);
+PubSubClient mqtt_client(wifiClient);
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("message received on topic");
@@ -9,6 +9,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
   }
+  int state = (int)payload[0]-(int)'0';
+  digitalWrite(LED_BUILTIN, state);
   Serial.println();
 }
 
