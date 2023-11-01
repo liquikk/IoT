@@ -1,58 +1,48 @@
+#include "HardwareSerial.h"
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WiFiMulti.h>
 
-ESP8266WiFiMulti wifi_multi;
-WiFiClient wifi_client;
-
-String ip = "(IP unset)"; // 192.168.4.1
+ESP8266WiFiMulti wifiMulti;
+WiFiClient wifiClient;
+String ip = "IP not set";
 
 String id(){
-  uint8_t mac[WL_MAC_ADDR_LENGTH];
-  int last = WL_MAC_ADDR_LENGTH - 1;
-  int prelast = WL_MAC_ADDR_LENGTH -2;
+  int mac_len = WL_MAC_ADDR_LENGTH;
+  uint8_t mac[mac_len];
   WiFi.softAPmacAddress(mac);
-  String id = String(mac[prelast], HEX) + String(mac[last], HEX);
-  return id;
+  String mac_id = String(mac[mac_len-2], HEX) + 
+                  String(mac[mac_len-1], HEX);
+  return mac_id;
 }
 
 bool start_AP_mode(){
-  IPAddress AP_IP(192, 168, 4, 1);
-  IPAddress mask(255, 255, 255, 0);
-  String ssid_name = ssid_AP + id();
+  String ssis_id = ssid_AP + "_" + id();
+  IPAddress ap_IP(192, 168, 9, 9);
   WiFi.disconnect();
   WiFi.mode(WIFI_AP);
-  WiFi.softAPConfig(AP_IP, AP_IP, mask);
-  WiFi.softAP(ssid_name.c_str(), ssid_pass.c_str());
- 
-  ip = WiFi.softAPIP().toString();
-  Serial.println("WiFi up in AP mode, " + ssid_name);
-  return true; 
-
+  WiFi.softAPConfig(ap_IP, ap_IP, IPAddress(255, 255, 255, 0));
+  WiFi.softAP(ssis_id.c_str(), ssid_pass.c_str());
+  Serial.println("WiFi started in AP mode" + ssid_AP + id());
+  return true;
 }
+
 bool start_client_mode(){
-  
-wifi_multi.addAP(ssid_client, pass_client);
-while(wifi_multi.run() != WL_CONNECTED){
-  Serial.println("trying to connect");
-  delay(100);
-}
-Serial.println("WiFi up in Client mode, ");
-Serial.println(ssid_client);
-return true;
+  wifiMulti.addAP(ssid_client, pass_client); 
+  while (wifiMulti.run() != WL_CONNECTED) { 
+    delay(10);
+  }
+  return true; 
 }
 
-bool init_WIFI(bool mode_AP){
-if(mode_AP){
-start_AP_mode();
-ip = WiFi.softAPIP().toString();
-
-}else{
-start_client_mode();
-ip = WiFi.localIP().toString();
-
-}
-Serial.println("IP:" + ip);
-
-return true;
+bool init_WIFI(bool AP_mode){ 
+  if (AP_mode){
+    start_AP_mode();
+    ip = WiFi.softAPIP().toString();
+  } else {
+    start_client_mode();
+    ip = WiFi.localIP().toString();
+  }
+  Serial.print("IP address: " + ip);
+  return true;
 }
