@@ -5,10 +5,12 @@ from questionary import confirm
 
 broker = "broker.emqx.io"
 client = paho.Client("client-isu-111")
+
 print("Connecting to broker", broker)
 client.connect(broker)
 client.loop_start()
 print("Publishing")
+
 min_duration = 20 
 max_duration = 40 
 current_duration = max_duration  
@@ -19,7 +21,6 @@ try:
         if now.second == 0:
             max_duration -= 1
 
-        # Проверяем и устанавливаем минимальное время свечения
         if max_duration == 30:
             max_duration += 10
 
