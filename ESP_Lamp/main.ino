@@ -29,5 +29,10 @@ void setup() {
 void loop() {
   server.handleClient();
   mqtt_client.loop();
+  // Проверка соединения с интернетом
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("Lost connection to WiFi. Restoring AP mode...");
+    init_WIFI(true); // Переключаемся в режим точки доступа
+  }
   delay(100);
 }
