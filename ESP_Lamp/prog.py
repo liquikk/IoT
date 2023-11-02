@@ -1,6 +1,8 @@
 import time
 import paho.mqtt.client as paho
 import datetime
+from questionary import confirm
+
 broker = "broker.emqx.io"
 client = paho.Client("client-isu-111")
 print("Connecting to broker", broker)
@@ -10,6 +12,7 @@ print("Publishing")
 min_duration = 20 
 max_duration = 40 
 current_duration = max_duration  
+
 try:
     while True:
         now = datetime.datetime.now()
