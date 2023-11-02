@@ -1,55 +1,43 @@
 import time
 import paho.mqtt.client as paho
-from questionary import prompt, text
+import datetime
 
-mqtt_broker = "broker.emqx.io"
-mqtt_port = 1883
+broker = "broker.emqx.io"
+client = paho.Client("client-isu-741")
 
-# ID лампочки (топик)
-lamp_topic = "esp8266daiki/command"
-
-# Время работы лампочки (в сек)
-lamp_run_time = 20
-min_lamp_run_time = 10
-time_decrement = 1
-
-def on_connect(client, userdata, flags, rc):
-    print(f"Connected with result code {rc}")
-    client.subscribe(lamp_topic)
-
-def on_message(client, userdata, msg):
-    print(f"Received message: {msg.payload}")
-    
-def control_lamp(client, command):
-    client.publish(lamp_topic, command)
-
-client= paho.Client("isu100123") 
-client.on_connect = on_connect
-client.on_message = on_message
-client.connect(mqtt_broker, mqtt_port, 60)
+print("Connecting to broker", broker)
+client.connect(broker)
 client.loop_start()
+print("Publishing")
 
-# Вкл лампочки
-control_lamp(client, "on")
-current_run_time = lamp_run_time
-
+min_duration = 20  # Минимальная длительность свечения
+max_duration = 40  # Максимальная длительность свечения
+current_duration = max_duration  # Начинаем с максимальной длительности
 try:
     while True:
-        # время работы лампочки
-        control_lamp(client, "on")
-        time.sleep(current_run_time)
-        
-        # Уменьшение время работы лампочки на 1 секунду
-        current_run_time = max(current_run_time - time_decrement, min_lamp_run_time)
-        
-        # Выключение лампочки
-        control_lamp(client, "off")
-        
-        # Сбрасываем время работы лампочки до нач значения
-        if current_run_time == min_lamp_run_time:
-            current_run_time = lamp_run_time
+
+        now = datetime.datetime.now()
+        # Уменьшаем длительность свечения каждую следующую минуту
+        if now.second == 0:
+            max_duration -= 1
+
+        # Проверяем и устанавливаем минимальное время свечения
+        if max_duration == 30:
+            max_duration += 10
+
+        if now.second >= min_duration and now.second <= max_duration:
+            state = "0"
+        else:
+            state = "1"
+
+        current_time = now.strftime("%Y-%m-%d %H:%M:%S")
+        print(f'Time: {current_time}, state: {state}, светит с {min_duration} по: {max_duration} секунд')
+        client.publish("esp8266daiki/command", state)
+
+        time.sleep(1)
+
 
 except KeyboardInterrupt:
     print("\nExiting...")
-    client.loop_stop()
     client.disconnect()
+    client.loop_stop()
