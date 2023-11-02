@@ -33,6 +33,10 @@ try:
         print(f'Секунды: {current_time}')
         client.publish("esp8266daiki/command", state)
         time.sleep(1)
+
+        #should_exit = confirm("Хотите завершить программу?", default=False).ask()
+        #if should_exit:
+            #raise KeyboardInterrupt 
         
 except KeyboardInterrupt:
     print("\nExiting...")
